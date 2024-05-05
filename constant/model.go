@@ -13,3 +13,9 @@ type MysqlProxy struct {
 	Port     string // 端口
 	DBName   string // mysql名称
 }
+
+// PageSizeReq 分页请求
+type PageSizeReq struct {
+	Page  int `json:"page"`  // 页
+	Limit int `json:"limit"` // 页大小
+}
