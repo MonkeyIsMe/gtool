@@ -10,7 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"gtool/constant"
+	"log"
 	"math"
 	"math/big"
 	"reflect"
@@ -18,7 +18,10 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/MonkeyIsMe/gtool/constant"
 	"github.com/antlabs/strsim"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // NullStringToString nullstring转换成string
@@ -233,4 +236,63 @@ func PKCS7UnPadding(origData []byte) []byte {
 	length := len(origData)
 	unpadding := int(origData[length-1])
 	return origData[:(length - unpadding)]
+}
+
+// StringHandler 处理从数据库里查出来的字符串的信息
+func StringHandler(results *sql.Rows) []string {
+	characters := make([]string, 0)
+	for results.Next() {
+		character := ""
+		err := results.Scan(&character)
+		if err != nil {
+			log.Printf("Scan string err: [%+v]", err)
+			continue
+		}
+
+		characters = append(characters, character)
+	}
+
+	return characters
+}
+
+// NullStringHandler 处理从数据库里查出来的字符串的信息
+func NullStringHandler(results *sql.Rows) []sql.NullString {
+	characters := make([]sql.NullString, 0)
+	for results.Next() {
+		character := sql.NullString{}
+		err := results.Scan(&character.String)
+		if err != nil {
+			log.Printf("Scan string err: [%+v]", err)
+			continue
+		}
+
+		characters = append(characters, character)
+	}
+
+	return characters
+}
+
+// NumberHandler 处理从数据库里查出来的数字的信息
+func NumberHandler(results *sql.Rows) []int {
+	numbers := make([]int, 0)
+	for results.Next() {
+		number := 0
+		err := results.Scan(&number)
+		if err != nil {
+			log.Printf("Scan number err: [%+v]", err)
+			continue
+		}
+
+		numbers = append(numbers, number)
+	}
+	return numbers
+}
+
+// IsValidString 判断sql里面的数据是否合法
+func IsValidString(nullString sql.NullString) string {
+	if nullString.Valid {
+		return nullString.String
+	}
+
+	return ""
 }

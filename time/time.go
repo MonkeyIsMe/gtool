@@ -2,10 +2,11 @@ package time
 
 import (
 	"fmt"
-	"gtool/constant"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/MonkeyIsMe/gtool/constant"
 )
 
 const (
@@ -158,21 +159,21 @@ func DateFormat(date string) string {
 
 // FormatStartTime 格式化开始时间
 func FormatStartTime(startTime string) string {
-	time, _ := time.Parse(StandardTime, startTime)
-	formatTime := fmt.Sprintf("%d", time.Year())
-	if time.Month() < 10 {
-		formatTime = fmt.Sprintf("%s-0%d", formatTime, time.Month())
+	unformatTime, _ := time.Parse(StandardTime, startTime)
+	formatTime := fmt.Sprintf("%d", unformatTime.Year())
+	if unformatTime.Month() < 10 {
+		formatTime = fmt.Sprintf("%s-0%d", formatTime, unformatTime.Month())
 	} else {
-		formatTime = fmt.Sprintf("%s-%d", formatTime, time.Month())
+		formatTime = fmt.Sprintf("%s-%d", formatTime, unformatTime.Month())
 	}
 
-	if time.Day() < 10 {
-		formatTime = fmt.Sprintf("%s-0%d", formatTime, time.Day())
+	if unformatTime.Day() < 10 {
+		formatTime = fmt.Sprintf("%s-0%d", formatTime, unformatTime.Day())
 	} else {
-		formatTime = fmt.Sprintf("%s-%d", formatTime, time.Day())
+		formatTime = fmt.Sprintf("%s-%d", formatTime, unformatTime.Day())
 	}
 
-	formatTime = fmt.Sprintf("%s(%s) ", formatTime, constant.WeekDayMap[time.Weekday().String()])
+	formatTime = fmt.Sprintf("%s(%s) ", formatTime, constant.WeekDayMap[unformatTime.Weekday().String()])
 
 	return formatTime
 }
