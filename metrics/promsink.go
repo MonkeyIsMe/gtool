@@ -210,13 +210,29 @@ func vecKey(name string, labels []string) string {
 	return name + "|" + strings.Join(labels, "\x00")
 }
 
+// labelValue 是一个已归一化的 label 名/值对。
+type labelValue struct {
+	label string
+	value string
+}
+
+// labelPair 提取维度为 label 名/值，并按 label 名排序。
+// 维度顺序不同的同一条指标会归一到同一组 label，从而落到同一个 Prometheus
+// 序列上（否则会重复注册 collector，第二条上报直接失败）。
 func labelPair(dims []*tmetrics.Dimension) (labels, values []string) {
+	pairs := make([]labelValue, 0, len(dims))
 	for _, d := range dims {
 		if d == nil || d.Name == "" {
 			continue
 		}
-		labels = append(labels, SanitizeMetricName(d.Name))
-		values = append(values, d.Value)
+		pairs = append(pairs, labelValue{label: SanitizeMetricName(d.Name), value: d.Value})
+	}
+	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i].label < pairs[j].label })
+	labels = make([]string, 0, len(pairs))
+	values = make([]string, 0, len(pairs))
+	for _, p := range pairs {
+		labels = append(labels, p.label)
+		values = append(values, p.value)
 	}
 	return
 }

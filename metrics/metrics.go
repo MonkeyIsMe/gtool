@@ -65,6 +65,18 @@ func ValueBounds(vs ...float64) tmetrics.BucketBounds {
 	return tmetrics.NewValueBounds(vs...)
 }
 
+// SecondsBounds 把时长桶边界换算成秒。
+//
+// tmetrics 的 PolicyHistogram 不做单位换算，Prometheus Sink 会把样本值原样落桶，
+// 因此 *_seconds 直方图必须用"秒"作样本值与桶边界，不能用 DurationBounds（纳秒）。
+func SecondsBounds(ds ...time.Duration) tmetrics.BucketBounds {
+	bounds := make(tmetrics.BucketBounds, 0, len(ds))
+	for _, d := range ds {
+		bounds = append(bounds, d.Seconds())
+	}
+	return bounds
+}
+
 // Report 上报一条（多维）记录。
 func Report(rec tmetrics.Record, opts ...tmetrics.Option) error {
 	return tmetrics.Report(rec, opts...)

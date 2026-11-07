@@ -150,3 +150,47 @@ func TestSanitizeMetricName(t *testing.T) {
 		}
 	}
 }
+
+// TestMultiDimensionLabelOrder 校验同一指标名在不同维度顺序下只产生一个序列：
+// 维度顺序不同不应导致重复注册，而应归一到同一组 label 与同一个序列。
+func TestMultiDimensionLabelOrder(t *testing.T) {
+	_, reg := newTestSink(t)
+
+	report := func(dims []*tmetrics.Dimension, v float64) error {
+		rec := tmetrics.NewMultiDimensionMetricsX("dim.order",
+			dims,
+			[]*tmetrics.Metrics{tmetrics.NewMetrics("req.order", v, tmetrics.PolicySUM)},
+		)
+		return tmetrics.Report(rec)
+	}
+	if err := report([]*tmetrics.Dimension{
+		{Name: "service", Value: "s1"},
+		{Name: "code", Value: "ok"},
+	}, 1); err != nil {
+		t.Fatalf("首次上报失败: %v", err)
+	}
+	if err := report([]*tmetrics.Dimension{
+		{Name: "code", Value: "ok"},
+		{Name: "service", Value: "s1"},
+	}, 2); err != nil {
+		t.Fatalf("维度顺序不同时的上报失败: %v", err)
+	}
+
+	fams, err := reg.Gather()
+	if err != nil {
+		t.Fatalf("gather: %v", err)
+	}
+	for _, f := range fams {
+		if f.GetName() != "req_order_total" {
+			continue
+		}
+		if len(f.GetMetric()) != 1 {
+			t.Fatalf("应只有 1 个序列，实际 %d: %v", len(f.GetMetric()), f.GetMetric())
+		}
+		if got := f.GetMetric()[0].GetCounter().GetValue(); got != 3 {
+			t.Fatalf("累计值应为 3，实际 %v", got)
+		}
+		return
+	}
+	t.Fatalf("未找到指标 req_order_total: %s", regText(t, reg))
+}
