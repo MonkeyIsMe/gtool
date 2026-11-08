@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/MonkeyIsMe/gtool/constant"
@@ -323,15 +324,17 @@ func EndOfYear(t time.Time) time.Time {
 }
 
 // FormatTime 格式化时间
-func FormatTime(unformatTime string) string {
+func FormatTime(unformattedTime string) string {
 	formatTime := ""
-	for i := 0; i < len(unformatTime); i++ {
-		if unformatTime[i] == 'T' {
+	for i := 0; i < len(unformattedTime); i++ {
+		if unformattedTime[i] == 'T' {
 			formatTime = fmt.Sprintf("%s ", formatTime)
-		} else if unformatTime[i] == 'Z' {
+		} else if unformattedTime[i] == 'Z' {
 			continue
+		} else if unformattedTime[i] == '+' {
+			return formatTime
 		} else {
-			formatTime = fmt.Sprintf("%s%c", formatTime, unformatTime[i])
+			formatTime = fmt.Sprintf("%s%c", formatTime, unformattedTime[i])
 		}
 	}
 	return formatTime
@@ -341,4 +344,31 @@ func FormatTime(unformatTime string) string {
 func GenGMTTime(unformatTime string) string {
 	formatTimestamp, _ := time.Parse(StandardTime, FormatTime(unformatTime))
 	return formatTimestamp.Format("Mon, 02 Jan 2006 15:04:05")
+}
+
+// DatesBetween 查询两个日期之间的日期
+func DatesBetween(startDate, endDate time.Time) []string {
+	var dates []time.Time
+	currentDate := startDate
+
+	// 当当前日期在结束日期之后时停止循环
+	for currentDate.Before(endDate) {
+		dates = append(dates, currentDate)
+		currentDate = currentDate.AddDate(0, 0, 1) // 增加一天
+	}
+
+	// 确保包含结束日期
+	dates = append(dates, endDate)
+
+	formatDates := make([]string, 0)
+	for _, date := range dates {
+		formatDates = append(formatDates, date.Format(time.DateOnly))
+	}
+	return formatDates
+}
+
+// FormatDateOnlyTime 格式化日期
+func FormatDateOnlyTime(unformatTime string) time.Time {
+	format, _ := time.Parse(time.DateOnly, strings.Split(unformatTime, " ")[0])
+	return format
 }

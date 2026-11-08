@@ -6,9 +6,9 @@ const (
 	DataEmpty         = 10001 // 请求的数据为空时候的返回值
 	ParameterMiss     = 10002 // 请求所需的参数部分缺失
 	ParameterInvalid  = 10003 // 请求的参数存在不合法的情况
-	LoginExpired      = 10004 // 登录失效
+	PrivilegeNotMatch = 10004 // 权限不匹配
 	InfoNotMatch      = 10005 // 信息不匹配
-	PrivilegeNotMatch = 10006 // 权限不匹配
+	LoginExpired      = 10006 // 登录失效
 )
 
 // 返回2xxxx -> MySQL错误
