@@ -81,3 +81,21 @@ func SecondsBounds(ds ...time.Duration) tmetrics.BucketBounds {
 func Report(rec tmetrics.Record, opts ...tmetrics.Option) error {
 	return tmetrics.Report(rec, opts...)
 }
+
+// Label 多维上报的一个标签键值对。
+// 值域必须是封闭小集合（可枚举）；禁止放入用户 ID、题目 ID 等高基数字段。
+type Label struct {
+	Name  string
+	Value string
+}
+
+// IncrWithLabels 计数器加 1，按标签区分序列（多维上报）。
+// 例：IncrWithLabels("oj.rcmd.request", Label{"type", "common"})
+func IncrWithLabels(name string, labels ...Label) {
+	dims := make([]*tmetrics.Dimension, len(labels))
+	for i, l := range labels {
+		dims[i] = &tmetrics.Dimension{Name: l.Name, Value: l.Value}
+	}
+	_ = tmetrics.ReportMultiDimensionMetricsX(name, dims,
+		[]*tmetrics.Metrics{tmetrics.NewMetrics(name, 1, tmetrics.PolicySUM)})
+}

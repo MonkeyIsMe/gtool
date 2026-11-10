@@ -194,3 +194,19 @@ func TestMultiDimensionLabelOrder(t *testing.T) {
 	}
 	t.Fatalf("未找到指标 req_order_total: %s", regText(t, reg))
 }
+
+func TestIncrWithLabels(t *testing.T) {
+	_, reg := newTestSink(t)
+	IncrWithLabels("req.label", Label{"type", "common"})
+	IncrWithLabels("req.label", Label{"type", "common"})
+	IncrWithLabels("req.label", Label{"type", "contest"})
+	text := regText(t, reg)
+	for _, want := range []string{
+		`req_label_total{type="common"} 2`,
+		`req_label_total{type="contest"} 1`,
+	} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("带标签计数缺少 %q: \n%s", want, text)
+		}
+	}
+}
