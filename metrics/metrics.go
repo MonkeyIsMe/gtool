@@ -91,11 +91,13 @@ type Label struct {
 
 // IncrWithLabels 计数器加 1，按标签区分序列（多维上报）。
 // 例：IncrWithLabels("oj.rcmd.request", Label{"type", "common"})
+// 注意：记录名必须传 ""，真实指标名放在内层 Metrics——
+// trpc-metrics-prometheus 会对多维记录拼「记录名_指标名」，记录名非空会导致名字重复。
 func IncrWithLabels(name string, labels ...Label) {
 	dims := make([]*tmetrics.Dimension, len(labels))
 	for i, l := range labels {
 		dims[i] = &tmetrics.Dimension{Name: l.Name, Value: l.Value}
 	}
-	_ = tmetrics.ReportMultiDimensionMetricsX(name, dims,
+	_ = tmetrics.ReportMultiDimensionMetricsX("", dims,
 		[]*tmetrics.Metrics{tmetrics.NewMetrics(name, 1, tmetrics.PolicySUM)})
 }
